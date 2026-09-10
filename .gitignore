@@ -1,0 +1,56 @@
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local data
+data/uploads/
+data/generated/
+data/processed/
+
+# ML artifacts
+*.bin
+*.pt
+*.pth
+*.safetensors
+/models/
+
+# Coverage
+coverage.xml
+
+# Temporary files
+*.tmp
+*.temp
