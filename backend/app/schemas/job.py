@@ -1,5 +1,19 @@
 from pydantic import BaseModel, Field
 
+from datetime import datetime
+
+
+class JobDescriptionResponse(BaseModel):
+    id: int = Field(
+        description="The saved job description identifier.",
+    )
+    text: str = Field(
+        description="The original job description text.",
+    )
+    created_at: datetime = Field(
+        description="The date and time when the job description was saved.",
+    )
+
 
 class JobDescriptionInput(BaseModel):
     text: str = Field(
