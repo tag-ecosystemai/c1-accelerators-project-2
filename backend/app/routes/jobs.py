@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -23,6 +23,26 @@ def submit_job_description(
     db.add(job)
     db.commit()
     db.refresh(job)
+
+    return JobDescriptionResponse(
+        id=job.id,
+        text=job.raw_text,
+        created_at=job.created_at,
+    )
+
+
+@router.get("/{job_id}", response_model=JobDescriptionResponse)
+def get_job_description(
+    job_id: int,
+    db: Session = Depends(get_db),
+) -> JobDescriptionResponse:
+    job = db.get(Job, job_id)
+
+    if job is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job description not found.",
+        )
 
     return JobDescriptionResponse(
         id=job.id,
