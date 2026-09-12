@@ -48,3 +48,14 @@ def test_get_job_description_rejects_unknown_id():
     response = client.get("/jobs/999999")
 
     assert response.status_code == 404
+
+def test_list_job_descriptions_returns_saved_jobs():
+    client.post(
+        "/jobs",
+        json={"text": "Python Backend Engineer"},
+    )
+
+    response = client.get("/jobs")
+
+    assert response.status_code == 200
+    assert len(response.json()["jobs"]) >= 1

@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 
 from datetime import datetime
 
+from typing import List
+
 
 class JobDescriptionResponse(BaseModel):
     id: int = Field(
@@ -55,4 +57,9 @@ class JobProfile(BaseModel):
     other_requirements: list[str] = Field(
         default_factory=list,
         description="Other explicit job requirements.",
+    )
+
+class JobListResponse(BaseModel):
+    jobs: List[JobDescriptionResponse] = Field(
+        description="The saved job descriptions.",
     )

@@ -3,7 +3,11 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models.job import Job
-from ..schemas.job import JobDescriptionInput, JobDescriptionResponse
+from ..schemas.job import (
+    JobDescriptionInput,
+    JobDescriptionResponse,
+    JobListResponse,
+)
 
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -48,4 +52,32 @@ def get_job_description(
         id=job.id,
         text=job.raw_text,
         created_at=job.created_at,
+    )
+
+def test_list_job_descriptions_returns_saved_jobs():
+    client.post(
+        "/jobs",
+        json={"text": "Python Backend Engineer"},
+    )
+
+    response = client.get("/jobs")
+
+    assert response.status_code == 200
+    assert len(response.json()["jobs"]) >= 1
+
+@router.get("", response_model=JobListResponse)
+def list_job_descriptions(
+    db: Session = Depends(get_db),
+) -> JobListResponse:
+    jobs = db.query(Job).order_by(Job.created_at.desc()).all()
+
+    return JobListResponse(
+        jobs=[
+            JobDescriptionResponse(
+                id=job.id,
+                text=job.raw_text,
+                created_at=job.created_at,
+            )
+            for job in jobs
+        ]
     )
