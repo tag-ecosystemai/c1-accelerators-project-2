@@ -63,3 +63,11 @@ class JobListResponse(BaseModel):
     jobs: List[JobDescriptionResponse] = Field(
         description="The saved job descriptions.",
     )
+
+class JobProfileResponse(JobProfile):
+    id: int = Field(
+        description="The saved job profile identifier.",
+    )
+    job_id: int = Field(
+        description="The related job description identifier.",
+    )

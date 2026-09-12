@@ -29,3 +29,19 @@ def test_job_profile_initializes_requirement_lists_as_empty():
     assert job_profile.education_requirements == []
     assert job_profile.responsibilities == []
     assert job_profile.other_requirements == []
+
+
+def test_job_profile_accepts_structured_requirements():
+    job_profile = JobProfile(
+        title="Backend Engineer",
+        raw_text="We are looking for a Python Backend Engineer.",
+        required_skills=["Python", "FastAPI"],
+        preferred_skills=["PostgreSQL"],
+        experience_requirements=["3 years of backend experience"],
+        education_requirements=["Bachelor's degree in Computer Science"],
+        responsibilities=["Build and maintain backend services"],
+        other_requirements=["Strong communication skills"],
+    )
+
+    assert job_profile.required_skills == ["Python", "FastAPI"]
+    assert job_profile.preferred_skills == ["PostgreSQL"]

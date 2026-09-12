@@ -59,3 +59,28 @@ def test_list_job_descriptions_returns_saved_jobs():
 
     assert response.status_code == 200
     assert len(response.json()["jobs"]) >= 1
+
+def test_create_job_profile_saves_structured_requirements():
+    job_response = client.post(
+        "/jobs",
+        json={"text": "Python Backend Engineer"},
+    )
+    job_id = job_response.json()["id"]
+
+    response = client.post(
+        f"/jobs/{job_id}/profile",
+        json={
+            "title": "Backend Engineer",
+            "raw_text": "Python Backend Engineer",
+            "required_skills": ["Python", "FastAPI"],
+            "preferred_skills": ["PostgreSQL"],
+            "experience_requirements": [],
+            "education_requirements": [],
+            "responsibilities": [],
+            "other_requirements": [],
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["job_id"] == job_id
+    assert response.json()["required_skills"] == ["Python", "FastAPI"]
