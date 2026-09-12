@@ -103,6 +103,18 @@ def create_job_profile(
             detail="Job description not found.",
         )
 
+    existing_profile = (
+        db.query(JobProfileModel)
+        .filter(JobProfileModel.job_id == job_id)
+        .first()
+    )
+
+    if existing_profile is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Job profile already exists.",
+        )
+
     profile = JobProfileModel(
         job_id=job_id,
         title=profile_input.title,

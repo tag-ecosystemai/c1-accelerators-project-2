@@ -111,3 +111,5 @@ def test_get_job_profile_returns_saved_profile():
     assert response.status_code == 200
     assert response.json()["job_id"] == job_id
     assert response.json()["required_skills"] == ["Python", "FastAPI"]
+
+
