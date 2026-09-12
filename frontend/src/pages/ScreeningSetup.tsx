@@ -1,233 +1,168 @@
-import { useRef, useState } from 'react'
-
-type InputMode = 'paste' | 'upload'
+import { useState } from 'react'
 
 interface ScreeningSetupProps {
     onScreeningComplete: () => void
 }
 
 function ScreeningSetup({ onScreeningComplete }: ScreeningSetupProps) {
-    const [inputMode, setInputMode] = useState<InputMode>('paste')
-    const [jobTitle, setJobTitle] = useState('')
     const [jobDescription, setJobDescription] = useState('')
-    const [jobFile, setJobFile] = useState<File | null>(null)
-    const [resumeFiles, setResumeFiles] = useState<File[]>([])
+    const [resumeCount, setResumeCount] = useState(0)
 
-    const jobFileInputRef = useRef<HTMLInputElement>(null)
-    const resumeFileInputRef = useRef<HTMLInputElement>(null)
-
-    const handleJobFileChange = (
+    const handleResumeUpload = (
         event: React.ChangeEvent<HTMLInputElement>,
     ) => {
-        const file = event.target.files?.[0]
+        const files = event.target.files
 
-        if (file) {
-            setJobFile(file)
+        if (files) {
+            setResumeCount(files.length)
         }
     }
-
-    const handleResumeFilesChange = (
-        event: React.ChangeEvent<HTMLInputElement>,
-    ) => {
-        const files = Array.from(event.target.files ?? [])
-
-        if (files.length > 0) {
-            setResumeFiles(files)
-        }
-    }
-
-    const canRunScreening =
-        (jobDescription.trim().length > 0 || jobFile !== null) &&
-        resumeFiles.length > 0
 
     return (
-        <div className="screening-setup">
-            
-            <div className="setup-grid">
-                {/* Job Description */}
-                <section className="panel">
-                    <div className="panel-header">
-                        <div>
-                            <span className="eyebrow">Role definition</span>
-                            <h2>Job Description</h2>
-                            <p>
-                                Provide the role requirements for evaluation.
-                            </p>
-                        </div>
+        <div className="screening-page">
+            <div className="screening-intro">
+                <div>
+                    <span className="page-eyebrow">Candidate screening</span>
 
-                        <span className="status-badge">Required</span>
+                    <h2>Define the role. Let the evidence guide the shortlist.</h2>
+
+                    <p>
+                        Start with the job description, add your candidate resumes, and
+                        TalentMatch will evaluate each candidate against the requirements.
+                    </p>
+                </div>
+
+                <div className="screening-principle">
+                    <span>Matching principle</span>
+
+                    <strong>
+                        The engine scores.
+                        <br />
+                        The evidence explains.
+                    </strong>
+                </div>
+            </div>
+
+            <div className="screening-grid">
+                <section className="screening-panel">
+                    <div className="screening-panel-header">
+                        <div className="screening-step">01</div>
+
+                        <div>
+                            <span className="screening-panel-eyebrow">
+                                Role definition
+                            </span>
+
+                            <h3>Job description</h3>
+                        </div>
                     </div>
-                    <div className="panel-content">
-                        <label htmlFor="job-title">Job title</label>
+
+                    <p className="screening-panel-description">
+                        Paste the role description or upload the original document. We’ll
+                        use it to identify the requirements against which candidates are
+                        evaluated.
+                    </p>
+
+                    <label
+                        className="screening-field-label"
+                        htmlFor="job-description"
+                    >
+                        Job description
+                    </label>
+
+                    <textarea
+                        id="job-description"
+                        className="screening-textarea"
+                        value={jobDescription}
+                        onChange={(event) => setJobDescription(event.target.value)}
+                        placeholder="Paste the job description here..."
+                        rows={13}
+                    />
+
+                    <div className="screening-upload-row">
+                        <label
+                            htmlFor="job-file"
+                            className="screening-upload-button"
+                        >
+                            Choose file
+                        </label>
 
                         <input
-                            id="job-title"
-                            type="text"
-                            placeholder="e.g. Senior Python Developer"
-                            value={jobTitle}
-                            onChange={(event) => setJobTitle(event.target.value)}
+                            id="job-file"
+                            type="file"
+                            accept=".pdf,.docx,.txt"
                         />
 
-                        <div className="input-mode">
-                            <button
-                                type="button"
-                                className={`mode-button ${inputMode === 'paste' ? 'active' : ''
-                                    }`}
-                                onClick={() => setInputMode('paste')}
-                            >
-                                Paste
-                            </button>
-
-                            <button
-                                type="button"
-                                className={`mode-button ${inputMode === 'upload' ? 'active' : ''
-                                    }`}
-                                onClick={() => setInputMode('upload')}
-                            >
-                                Upload
-                            </button>
-                        </div>
-
-                        {inputMode === 'paste' ? (
-                            <>
-                                <label htmlFor="job-description">
-                                    Job description
-                                </label>
-
-                                <textarea
-                                    id="job-description"
-                                    rows={12}
-                                    placeholder="Paste the full job description here..."
-                                    value={jobDescription}
-                                    onChange={(event) =>
-                                        setJobDescription(event.target.value)
-                                    }
-                                />
-                            </>
-                        ) : (
-                            <div className="upload-zone">
-                                <input
-                                    ref={jobFileInputRef}
-                                    type="file"
-                                    accept=".pdf,.docx,.txt"
-                                    hidden
-                                    onChange={handleJobFileChange}
-                                />
-
-                                <div className="upload-icon">JD</div>
-
-                                <h3>
-                                    {jobFile ? jobFile.name : 'Upload a job description'}
-                                </h3>
-
-                                <p>
-                                    PDF, DOCX, or TXT files are supported.
-                                </p>
-
-                                <button
-                                    type="button"
-                                    className="secondary-button"
-                                    onClick={() => jobFileInputRef.current?.click()}
-                                >
-                                    {jobFile ? 'Choose another file' : 'Choose file'}
-                                </button>
-                            </div>
-                        )}
+                        <span className="screening-file-hint">
+                            PDF, DOCX or TXT
+                        </span>
                     </div>
                 </section>
 
-                {/* Candidate Pool */}
-                <section className="panel">
-                    <div className="panel-header">
-                        <div>
-                            <span className="eyebrow">Candidate intake</span>
-                            <h2>Candidate Pool</h2>
-                            <p>
-                                Upload the resumes you want TalentMatch to screen.
-                            </p>
-                        </div>
+                <section className="screening-panel">
+                    <div className="screening-panel-header">
+                        <div className="screening-step peach">02</div>
 
-                        <span className="status-badge">Required</span>
+                        <div>
+                            <span className="screening-panel-eyebrow">
+                                Candidate pool
+                            </span>
+
+                            <h3>Resume batch</h3>
+                        </div>
                     </div>
 
-                    <div className="panel-content">
+                    <p className="screening-panel-description">
+                        Add the resumes you want to evaluate. TalentMatch processes the
+                        batch and keeps each candidate tied to their source evidence.
+                    </p>
+
+                    <div className="screening-upload-row screening-candidate-upload">
+                        <label
+                            htmlFor="candidate-files"
+                            className="screening-upload-button"
+                        >
+                            Choose files
+                        </label>
+
                         <input
-                            ref={resumeFileInputRef}
+                            id="candidate-files"
                             type="file"
                             accept=".pdf,.docx,.txt"
                             multiple
-                            hidden
-                            onChange={handleResumeFilesChange}
+                            onChange={handleResumeUpload}
                         />
 
-                        <div className="upload-zone candidate-upload">
-                            <div className="upload-icon">CV</div>
-
-                            <h3>Upload candidate resumes</h3>
-
-                            <p>
-                                Add multiple PDF, DOCX, or TXT resumes for batch
-                                screening.
-                            </p>
-
-                            <button
-                                type="button"
-                                className="secondary-button"
-                                onClick={() => resumeFileInputRef.current?.click()}
-                            >
-                                Upload resumes
-                            </button>
-                        </div>
-
-                        {resumeFiles.length > 0 && (
-                            <div className="file-summary">
-                                <div className="file-summary-main">
-                                    <div className="file-summary-count">
-                                        <strong>{resumeFiles.length}</strong>
-                                    </div>
-
-                                    <div>
-                                        <strong>
-                                            {resumeFiles.length === 1
-                                                ? 'Resume ready'
-                                                : 'Resumes ready'}
-                                        </strong>
-
-                                        <span>
-                                            Ready for batch screening
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <span className="status-badge">Ready</span>
-                            </div>
-                        )}
+                        <span className="screening-file-hint">
+                            {resumeCount > 0
+                                ? `${resumeCount} resume${resumeCount === 1 ? '' : 's'} selected`
+                                : 'PDF, DOCX or TXT · Multiple files supported'}
+                        </span>
                     </div>
                 </section>
             </div>
 
-            {/* Screening Action */}
-            <section className="screening-action">
+            <div className="screening-action-bar">
                 <div>
-                    <span className="eyebrow">Ready to screen?</span>
-                    <h2>Run the candidate screening</h2>
+                    <span>Ready to screen?</span>
+
                     <p>
-                        TalentMatch will process the job description and
-                        candidate pool, then generate ranked results.
+                        Candidate ranking will be determined by the matching engine.
                     </p>
                 </div>
 
                 <button
                     type="button"
-                    className="primary-button"
-                    disabled={!canRunScreening}
+                    className="screening-run-button"
                     onClick={onScreeningComplete}
                 >
-                    Run Candidate Screening
+                    Run candidate screening
+                    <span aria-hidden="true">→</span>
                 </button>
-            </section>
+            </div>
         </div>
     )
 }
 
 export default ScreeningSetup
+
