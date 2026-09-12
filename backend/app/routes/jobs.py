@@ -130,3 +130,37 @@ def create_job_profile(
         responsibilities=profile.responsibilities,
         other_requirements=profile.other_requirements,
     )
+@router.get(
+    "/{job_id}/profile",
+    response_model=JobProfileResponse,
+)
+def get_job_profile(
+    job_id: int,
+    db: Session = Depends(get_db),
+) -> JobProfileResponse:
+    profile = (
+        db.query(JobProfileModel)
+        .filter(JobProfileModel.job_id == job_id)
+        .first()
+    )
+
+    if profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job profile not found.",
+        )
+
+    job = db.get(Job, job_id)
+
+    return JobProfileResponse(
+        id=profile.id,
+        job_id=profile.job_id,
+        title=profile.title,
+        raw_text=job.raw_text,
+        required_skills=profile.required_skills,
+        preferred_skills=profile.preferred_skills,
+        experience_requirements=profile.experience_requirements,
+        education_requirements=profile.education_requirements,
+        responsibilities=profile.responsibilities,
+        other_requirements=profile.other_requirements,
+    )
