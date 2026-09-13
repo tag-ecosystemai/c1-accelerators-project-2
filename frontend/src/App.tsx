@@ -1,19 +1,32 @@
 import { useState } from 'react'
 import './App.css'
+import LandingPage from './pages/LandingPage'
 import RecruiterLayout from './layouts/RecruiterLayout'
 import ScreeningSetup from './pages/ScreeningSetup'
 import CandidateDashboard from './pages/CandidateDashboard'
 import CandidateReview from './pages/CandidateReview'
 import CandidateComparison from './pages/CandidateComparison'
 
-type Page = 'setup' | 'dashboard' | 'review' | 'comparison'
+type Page =
+  | 'landing'
+  | 'setup'
+  | 'dashboard'
+  | 'review'
+  | 'comparison'
 
 function App() {
-  const [page, setPage] = useState<Page>('setup')
+  const [page, setPage] = useState<Page>('landing')
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(
+    null,
+  )
 
-  const [selectedCandidateId, setSelectedCandidateId] = useState<
-    string | null
-  >(null)
+  if (page === 'landing') {
+    return (
+      <LandingPage
+        onLogin={() => setPage('setup')}
+      />
+    )
+  }
 
   return (
     <RecruiterLayout
