@@ -1,47 +1,39 @@
 import pytest
 from pydantic import ValidationError
 
-from backend.app.schemas.job import JobDescriptionInput, JobProfile
+from backend.app.schemas.job import JobDescriptionInput
+from intelligence.models import Evidence, JobProfile, Skill
 
 
 def test_job_description_input_accepts_valid_text():
-    job_description = JobDescriptionInput(
-        text="Python Backend Engineer",
-    )
-
-    assert job_description.text == "Python Backend Engineer"
+    assert JobDescriptionInput(text="Python Backend Engineer").text == "Python Backend Engineer"
 
 
-def test_job_description_input_rejects_empty_text():
+@pytest.mark.parametrize("text", ["", "   \n\t  "])
+def test_job_description_input_rejects_empty_or_whitespace_text(text: str):
     with pytest.raises(ValidationError):
-        JobDescriptionInput(text="")
+        JobDescriptionInput(text=text)
 
 
-def test_job_profile_initializes_requirement_lists_as_empty():
-    job_profile = JobProfile(
-        title="Backend Engineer",
-        raw_text="We are looking for a Backend Engineer.",
+def test_job_description_input_rejects_text_over_fifty_thousand_characters():
+    with pytest.raises(ValidationError):
+        JobDescriptionInput(text="a" * 50_001)
+
+
+def test_canonical_job_profile_preserves_skill_and_evidence_metadata():
+    evidence = Evidence(source="job-description", snippet="Requires Python development experience.")
+    skill = Skill(name="Python", normalized_name="python", required=True, evidence=[evidence])
+    profile = JobProfile(
+        title=None,
+        required_skills=[skill],
+        preferred_skills=[],
+        minimum_experience_years=3.0,
+        education_requirements=[],
+        responsibilities=[],
+        evidence=[evidence],
     )
 
-    assert job_profile.required_skills == []
-    assert job_profile.preferred_skills == []
-    assert job_profile.experience_requirements == []
-    assert job_profile.education_requirements == []
-    assert job_profile.responsibilities == []
-    assert job_profile.other_requirements == []
-
-
-def test_job_profile_accepts_structured_requirements():
-    job_profile = JobProfile(
-        title="Backend Engineer",
-        raw_text="We are looking for a Python Backend Engineer.",
-        required_skills=["Python", "FastAPI"],
-        preferred_skills=["PostgreSQL"],
-        experience_requirements=["3 years of backend experience"],
-        education_requirements=["Bachelor's degree in Computer Science"],
-        responsibilities=["Build and maintain backend services"],
-        other_requirements=["Strong communication skills"],
-    )
-
-    assert job_profile.required_skills == ["Python", "FastAPI"]
-    assert job_profile.preferred_skills == ["PostgreSQL"]
+    assert profile.title is None
+    assert profile.required_skills[0].normalized_name == "python"
+    assert profile.required_skills[0].evidence[0].snippet.startswith("Requires Python")
+    assert profile.minimum_experience_years == 3.0

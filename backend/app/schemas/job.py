@@ -1,73 +1,46 @@
-from pydantic import BaseModel, Field
+"""API schemas for job descriptions and canonical job profiles."""
 
 from datetime import datetime
 
-from typing import List
+from pydantic import BaseModel, Field, field_validator
 
-
-class JobDescriptionResponse(BaseModel):
-    id: int = Field(
-        description="The saved job description identifier.",
-    )
-    text: str = Field(
-        description="The original job description text.",
-    )
-    created_at: datetime = Field(
-        description="The date and time when the job description was saved.",
-    )
+from intelligence.models import JobProfile
 
 
 class JobDescriptionInput(BaseModel):
+    """Input used to create a job description."""
+
     text: str = Field(
         min_length=1,
         max_length=50_000,
         description="The job description text.",
     )
 
+    @field_validator("text")
+    @classmethod
+    def text_must_contain_non_whitespace_characters(cls, value: str) -> str:
+        """Reject text that contains only whitespace."""
+        if not value.strip():
+            raise ValueError("The job description text cannot be blank.")
+        return value
 
-class JobProfile(BaseModel):
-    title: str = Field(
-        min_length=1,
-        description="The job title.",
-    )
-    raw_text: str = Field(
-        min_length=1,
-        description="The original job description text.",
-    )
-    required_skills: list[str] = Field(
-        default_factory=list,
-        description="Skills required for the role.",
-    )
-    preferred_skills: list[str] = Field(
-        default_factory=list,
-        description="Skills preferred for the role.",
-    )
-    experience_requirements: list[str] = Field(
-        default_factory=list,
-        description="Required experience qualifications.",
-    )
-    education_requirements: list[str] = Field(
-        default_factory=list,
-        description="Required education qualifications.",
-    )
-    responsibilities: list[str] = Field(
-        default_factory=list,
-        description="Main role responsibilities.",
-    )
-    other_requirements: list[str] = Field(
-        default_factory=list,
-        description="Other explicit job requirements.",
-    )
+
+class JobDescriptionResponse(BaseModel):
+    """A persisted job description."""
+
+    id: int = Field(description="The saved job description identifier.")
+    text: str = Field(description="The original job description text.")
+    created_at: datetime = Field(description="When the job description was saved.")
+
 
 class JobListResponse(BaseModel):
-    jobs: List[JobDescriptionResponse] = Field(
-        description="The saved job descriptions.",
-    )
+    """A collection of persisted job descriptions."""
+
+    jobs: list[JobDescriptionResponse] = Field(description="The saved job descriptions.")
+
 
 class JobProfileResponse(JobProfile):
-    id: int = Field(
-        description="The saved job profile identifier.",
-    )
-    job_id: int = Field(
-        description="The related job description identifier.",
-    )
+    """A canonical job profile linked to its persisted job description."""
+
+    id: int = Field(description="The saved job profile identifier.")
+    job_id: int = Field(description="The related job description identifier.")

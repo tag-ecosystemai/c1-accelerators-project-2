@@ -2,60 +2,55 @@
 
 ## Overview
 
-This backend provides the API and PostgreSQL persistence layer for TalentMatch AI, an explainable resume-to-job matching system.
-
-The current implementation focuses on the job description workflow: saving job description text, storing structured job requirements, and making those resources available through the API.
+This backend persists job descriptions and the canonical structured profile produced by the intelligence module. It does not perform extraction, matching, scoring, or LLM explanations.
 
 ## Technology Stack
 
-- Python 3.13
+- Python 3.11
 - FastAPI
 - Pydantic
 - PostgreSQL
 - SQLAlchemy
+- Alembic
 - Psycopg
 - Pytest
 
-## Completed Features
+## Current API
 
-- FastAPI application with automatic API documentation at `/docs`.
-- Health check endpoint: `GET /health`.
-- PostgreSQL connection configured through `DATABASE_URL`.
-- Database tables for job descriptions and job profiles.
-- Job description endpoints:
-  - `POST /jobs` creates and saves job description text.
-  - `GET /jobs` returns saved job descriptions, newest first.
-  - `GET /jobs/{job_id}` returns one saved job description.
-- Structured job profile endpoints:
-  - `POST /jobs/{job_id}/profile` saves extracted job requirements.
-  - `GET /jobs/{job_id}/profile` returns the saved structured profile.
-  - Duplicate profiles for the same job description are rejected with `409 Conflict`.
-- Automated test suite covering API routes, schemas, database connection, and database tables.
+- `GET /health` checks that the service is running.
+- `POST /jobs` saves original job-description text in `Job.raw_text`.
+- `GET /jobs` lists saved job descriptions.
+- `GET /jobs/{job_id}` returns one job description.
+- `POST /jobs/{job_id}/profile` stores a canonical structured profile for a job.
+- `GET /jobs/{job_id}/profile` returns that profile.
 
-## Job Profile Data
+Only one profile may be created for each job. A duplicate request returns `409 Conflict`; an unknown job returns `404 Not Found`.
 
-A structured job profile contains:
+## Canonical Job Profile Contract
 
-- Job title
-- Required skills
-- Preferred skills
-- Experience requirements
-- Education requirements
-- Responsibilities
-- Other explicit requirements
+The backend imports `intelligence.models.JobProfile` rather than maintaining a second profile contract. A profile contains:
+
+- Optional `title`.
+- Required and preferred `Skill` objects, including `name`, `normalized_name`, `required`, and skill-level `evidence`.
+- Optional `minimum_experience_years`.
+- Education requirements and responsibilities.
+- General profile `evidence`.
+
+The original job-description text remains only in `Job.raw_text`; it is not duplicated in a profile.
 
 ## Local Setup
 
-1. Create and activate the virtual environment.
+1. Use Python 3.11 and create a virtual environment.
 
 ```cmd
+py -3.11 -m venv talentmatch-env
 talentmatch-env\Scripts\activate.bat
 ```
 
-2. Install dependencies.
+2. Install the shared project dependencies.
 
 ```cmd
-python -m pip install -r backend\requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 3. Create a `.env` file at the project root.
@@ -64,12 +59,12 @@ python -m pip install -r backend\requirements.txt
 DATABASE_URL=postgresql+psycopg://talentmatch:YOUR_PASSWORD@localhost:5432/talentmatch
 ```
 
-Never commit the `.env` file because it contains secrets.
+Never commit `.env`, because it contains credentials.
 
-4. Create database tables.
+4. Apply database migrations.
 
 ```cmd
-python -m backend.app.init_db
+python -m alembic upgrade head
 ```
 
 5. Start the API.
@@ -78,25 +73,18 @@ python -m backend.app.init_db
 python -m uvicorn backend.app.main:app --reload
 ```
 
-The API documentation is available at `http://127.0.0.1:8000/docs`.
+The documentation is available at `http://127.0.0.1:8000/docs`.
 
-## Run Tests
+## Tests
 
 ```cmd
 python -m pytest
 ```
 
-## Remaining P0 Work
+Tests use an isolated in-memory SQLite database. They do not read from or modify the local PostgreSQL database.
 
-- Integrate job-description extraction with the NLP module.
-- Add resume batch upload and document-processing integration.
-- Store candidate profiles, evidence, matches, and scores.
-- Integrate deterministic matching and scoring.
-- Add candidate ranking, detail, and comparison endpoints.
-- Integrate grounded Groq explanations without allowing the LLM to determine scores or rankings.
-- Add robust batch processing statuses and per-file error handling.
-- Add evaluation endpoints and metrics support.
+## Next Steps
 
-## Architecture Principle
-
-The deterministic matching and scoring engine determines candidate fit and ranking. The LLM only explains evidence-backed results.
+- Connect the flow: raw job description → intelligence extraction → canonical `JobProfile` → persistence.
+- Add Alembic migrations for future schema changes; `create_all()` remains only as a foundation helper.
+- Integrate resume ingestion, matching, scoring, ranking, and evidence-backed explanations in separate work.
