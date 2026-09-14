@@ -21,7 +21,7 @@ def test_job_description_input_rejects_text_over_fifty_thousand_characters():
 
 
 def test_canonical_job_profile_preserves_skill_and_evidence_metadata():
-    evidence = Evidence(source="job-description", snippet="Requires Python development experience.")
+    evidence = Evidence(text="Requires Python development experience.", location="requirements")
     skill = Skill(name="Python", normalized_name="python", required=True, evidence=[evidence])
     profile = JobProfile(
         title=None,
@@ -35,5 +35,5 @@ def test_canonical_job_profile_preserves_skill_and_evidence_metadata():
 
     assert profile.title is None
     assert profile.required_skills[0].normalized_name == "python"
-    assert profile.required_skills[0].evidence[0].snippet.startswith("Requires Python")
+    assert profile.required_skills[0].evidence[0].text.startswith("Requires Python")
     assert profile.minimum_experience_years == 3.0

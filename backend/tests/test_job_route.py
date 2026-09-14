@@ -9,9 +9,8 @@ client = TestClient(app)
 
 def profile_payload() -> dict[str, object]:
     evidence = {
-        "source": "job-description",
-        "snippet": "The candidate must know Python and FastAPI.",
-        "section": "Requirements",
+        "text": "The candidate must know Python and FastAPI.",
+        "location": "requirements",
     }
     return {
         "title": "Backend Engineer",
@@ -69,8 +68,8 @@ def test_create_job_profile_preserves_canonical_structures():
     body = response.json()
     assert body["job_id"] == job_id
     assert body["required_skills"][0]["normalized_name"] == "python"
-    assert body["required_skills"][0]["evidence"][0]["section"] == "Requirements"
-    assert body["evidence"][0]["snippet"].startswith("The candidate")
+    assert body["required_skills"][0]["evidence"][0]["location"] == "requirements"
+    assert body["evidence"][0]["text"].startswith("The candidate")
     assert "raw_text" not in body
 
 
