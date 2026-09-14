@@ -3,18 +3,25 @@
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from backend.app.database import Base, database_url
+from backend.app.database import Base
 from backend.app.models.job import Job
 from backend.app.models.job_profile import JobProfile
 
 
 config = context.config
-config.set_main_option("sqlalchemy.url", database_url)
+
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    context.configure(url=database_url, target_metadata=target_metadata, literal_binds=True)
+    url = config.get_main_option("sqlalchemy.url")
+
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+    )
+
     with context.begin_transaction():
         context.run_migrations()
 
@@ -25,8 +32,13 @@ def run_migrations_online() -> None:
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
+
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+        )
+
         with context.begin_transaction():
             context.run_migrations()
 
@@ -35,3 +47,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
