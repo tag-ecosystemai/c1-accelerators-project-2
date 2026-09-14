@@ -32,6 +32,7 @@ The backend imports `intelligence.models.JobProfile` rather than maintaining a s
 
 - Optional `title`.
 - Required and preferred `Skill` objects, including `name`, `normalized_name`, `required`, and skill-level `evidence`.
+- Each `Evidence` object preserves the supporting `text` and its optional `location` in the source document.
 - Optional `minimum_experience_years`.
 - Education requirements and responsibilities.
 - General profile `evidence`.
@@ -81,7 +82,7 @@ The documentation is available at `http://127.0.0.1:8000/docs`.
 python -m pytest
 ```
 
-Tests use an isolated in-memory SQLite database. They do not read from or modify the local PostgreSQL database.
+Tests use an isolated in-memory SQLite database. They do not read from or modify the local PostgreSQL database. The combined backend and intelligence suite currently contains 48 passing tests.
 
 ## Next Steps
 
