@@ -35,13 +35,10 @@ class CandidateProfile(BaseModel):
     name: str | None = None
     email: str | None = None
     phone: str | None = None
-
     skills: list[Skill] = Field(default_factory=list)
-
     experience_years: float | None = None
     education: list[str] = Field(default_factory=list)
     employment_history: list[str] = Field(default_factory=list)
     projects: list[str] = Field(default_factory=list)
     responsibilities: list[str] = Field(default_factory=list)
-
     evidence: list[Evidence] = Field(default_factory=list)
