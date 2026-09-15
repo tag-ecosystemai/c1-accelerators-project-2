@@ -1,23 +1,20 @@
 """Alembic configuration for the TalentMatch database."""
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 
-from backend.app.database import Base
+from backend.app.database import Base, engine
 from backend.app.models.job import Job
 from backend.app.models.job_profile import JobProfile
+from backend.app.models.session import Session
+from backend.app.models.user import User
 
-
-config = context.config
 
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
-
     context.configure(
-        url=url,
+        url=engine.url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
         literal_binds=True,
     )
@@ -27,13 +24,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-
-    with connectable.connect() as connection:
+    with engine.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
@@ -47,4 +38,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
