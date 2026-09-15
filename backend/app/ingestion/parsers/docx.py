@@ -1,6 +1,8 @@
+import os
+
 from docx import Document
 
-from ingestion.models import ParsedDocument
+from ..models import ParsedDocument
 
 
 def parse_docx(file_path: str) -> ParsedDocument:
@@ -8,13 +10,12 @@ def parse_docx(file_path: str) -> ParsedDocument:
 
     doc = Document(file_path)
 
-    lines: list[str] = []
+    lines: list = []
 
     for paragraph in doc.paragraphs:
         if paragraph.text.strip():
             lines.append(paragraph.text)
 
-    # Some resumes put skills or dates in tables rather than paragraphs
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
@@ -22,9 +23,9 @@ def parse_docx(file_path: str) -> ParsedDocument:
                     lines.append(cell.text)
 
     return ParsedDocument(
-        source_filename=file_path,
+        source_filename=os.path.basename(file_path),
         raw_text="\n".join(lines),
-        page_map=None,  # DOCX has no native page concept
+        page_map=None,
         metadata={"paragraph_count": len(doc.paragraphs)},
         parse_status="success",
     )

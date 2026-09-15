@@ -1,4 +1,6 @@
-from ingestion.models import ParsedDocument
+import os
+
+from ..models import ParsedDocument
 
 
 def parse_txt(file_path: str) -> ParsedDocument:
@@ -8,7 +10,7 @@ def parse_txt(file_path: str) -> ParsedDocument:
         text = f.read()
 
     return ParsedDocument(
-        source_filename=file_path,
+        source_filename=os.path.basename(file_path),
         raw_text=text,
         page_map=None,
         metadata={},
