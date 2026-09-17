@@ -464,3 +464,114 @@ def test_authenticated_job_comparison_explanation_requires_authentication():
         )
 
     assert response.status_code == 404
+    
+def test_candidate_explanation_works_with_mock_llm():
+    client.post("/auth/logout")
+    clear_anonymous_screening_cookie()
+
+    job_id = create_job()
+
+    candidate_id = create_candidate(
+        job_id,
+        "mock-candidate.txt",
+        """
+        Mock Candidate
+
+        Skills
+        Python
+        FastAPI
+
+        Experience
+        Backend Engineer
+
+        Responsibilities
+        Build backend services
+        """,
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"LLM_PROVIDER": "mock"},
+    ):
+        response = client.get(
+            f"/jobs/{job_id}/candidates/"
+            f"{candidate_id}/explanation"
+        )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["candidate_id"] == candidate_id
+    assert body["model"] == "mock-llm"
+    assert body["explanation"]
+    assert (
+        "deterministic matching results"
+        in body["explanation"]
+    )
+
+
+def test_comparison_explanation_works_with_mock_llm():
+    client.post("/auth/logout")
+    clear_anonymous_screening_cookie()
+
+    job_id = create_job()
+
+    candidate_one = create_candidate(
+        job_id,
+        "mock-candidate-one.txt",
+        """
+        Candidate One
+
+        Skills
+        Python
+        FastAPI
+
+        Experience
+        Backend Engineer
+        """,
+    )
+
+    candidate_two = create_candidate(
+        job_id,
+        "mock-candidate-two.txt",
+        """
+        Candidate Two
+
+        Skills
+        Python
+
+        Experience
+        Software Developer
+        """,
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"LLM_PROVIDER": "mock"},
+    ):
+        response = client.post(
+            f"/jobs/{job_id}/candidates/"
+            "compare/explanation",
+            json={
+                "candidate_ids": [
+                    candidate_one,
+                    candidate_two,
+                ]
+            },
+        )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["candidate_ids"] == [
+        candidate_one,
+        candidate_two,
+    ]
+    assert body["model"] == "mock-llm"
+    assert body["explanation"]
+    assert (
+        "deterministic matching results"
+        in body["explanation"]
+    )

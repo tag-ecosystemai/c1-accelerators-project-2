@@ -789,8 +789,8 @@ function CandidateReview({
 
           <span className="review-llm-label">
             {explanation
-              ? `Groq · ${explanation.model}`
-              : 'Groq · Explanation only'}
+              ? `${explanation.model} · Explanation only`
+              : 'Explanation only'}
           </span>
         </div>
 

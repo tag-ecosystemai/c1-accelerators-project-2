@@ -18,154 +18,393 @@ TAG AI Engineering Bootcamp — Cohort 1
 
 # TalentMatch AI
 
-TalentMatch AI is a local-first, explainable resume-to-job matching engine designed to support recruiters in screening and reviewing candidates.
+TalentMatch AI is a recruiter-facing, explainable resume-to-job matching platform.
 
-The system combines deterministic candidate matching and scoring with grounded LLM explanations.
+It helps recruiters screen multiple resumes against a job description using deterministic matching, evidence-based scoring, and grounded LLM explanations.
 
-> **Core principle:** The matching engine determines candidate fit; the LLM explains the evidence behind the result.
-
-TalentMatch AI is a **recruiter decision-support system**, not an autonomous hiring system. Candidate scores and rankings are determined by deterministic matching logic, while human review remains part of the recruitment workflow.
+> **Important:** TalentMatch AI is not an autonomous hiring system. The matching engine calculates scores and rankings deterministically. The LLM is used only to explain the supplied matching results. Recruiters remain responsible for hiring decisions.
 
 ---
 
-## Project Status
+## Features
 
-TalentMatch AI is being developed as **Project 2 of the TAG Ecosystem AI Engineering Bootcamp**.
+* Job description upload or text input
+* Job profile extraction
+* Batch resume upload
+* Resume parsing for PDF and DOCX files
+* Deterministic candidate matching
+* Exact and normalized skill matching
+* Semantic matching
+* Evidence-based matching results
+* Weighted candidate scoring
+* Candidate ranking
+* Required-skill coverage
+* Candidate detail and review
+* Comparison of 2–3 candidates
+* Grounded candidate explanations
+* Grounded candidate comparison explanations
+* Anonymous screening support
+* Authenticated recruiter workflows
 
-The repository currently contains:
+### Scoring
 
-* Recruiter-facing React frontend.
-* Document intelligence and structured extraction.
-* Skill normalization and evidence extraction.
-* Semantic skill matching using local embeddings.
-* Deterministic candidate scoring.
-* Candidate ranking.
-* FastAPI backend foundation.
-* PostgreSQL database support.
-* Alembic migrations.
-* Backend and intelligence tests.
+| Category            | Weight |
+| ------------------- | -----: |
+| Required Skills     |    40% |
+| Relevant Experience |    25% |
+| Responsibilities    |    15% |
+| Education           |    10% |
+| Preferred Skills    |    10% |
 
-The remaining work is focused on integrating the individual modules into the complete end-to-end screening workflow.
+The deterministic matching engine owns the score and ranking. The LLM does not calculate, modify, or override them.
 
 ---
 
-## Architecture
+## Tech Stack
+
+### Backend
+
+* Python
+* FastAPI
+* Pydantic
+* SQLAlchemy
+* PostgreSQL
+* Alembic
+* PyMuPDF
+* python-docx
+* Sentence Transformers
+* pytest
+
+### Frontend
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* Lucide
+* TanStack Table
+* React Hook Form
+* Zod
+
+### LLM
+
+TalentMatch uses a provider abstraction for explanations:
 
 ```text
-                         TalentMatch AI
-                              │
-              ┌───────────────┴───────────────┐
-              │                               │
-         React Frontend                  FastAPI Backend
-              │                               │
-              │                     ┌─────────┴─────────┐
-              │                     │                   │
-              │                Job / Candidate      Persistence
-              │                  Processing           PostgreSQL
-              │
-              ▼
-       Recruiter Workflow
-              │
-              ▼
-      Job Description + Resumes
-              │
-              ▼
-       Document / Text Processing
-              │
-              ▼
-       Intelligence Extraction
-              │
-              ├── JobProfile
-              └── CandidateProfile
-              │
-              ▼
-       Skill Normalization
-              │
-              ▼
-        Matching Engine
-              │
-              ├── Exact / normalized matching
-              └── Semantic matching
-              │
-              ▼
-       Deterministic Scoring
-              │
-              ├── Required Skills       40%
-              ├── Relevant Experience   25%
-              ├── Responsibilities      15%
-              ├── Education             10%
-              └── Preferred Skills      10%
-              │
-              ▼
-       Candidate Ranking
-              │
-              ▼
-       Evidence + Skill Gaps
-              │
-              ▼
-       Grounded LLM Explanation
-              │
-              ▼
-        Recruiter Review
+Explanation API
+      ↓
+ExplanationService
+      ↓
+LLMClient
+      ↓
+MockLLMClient / GroqLLMClient
+```
+
+Local development and automated tests use the deterministic mock provider.
+
+Production can use Groq with:
+
+```text
+openai/gpt-oss-20b
+```
+
+The LLM is only responsible for explaining deterministic matching results.
+
+---
+
+# Local Development
+
+## Prerequisites
+
+Install:
+
+* Python 3.11+
+* Node.js
+* npm
+* PostgreSQL
+
+Docker can also be used to run PostgreSQL locally.
+
+---
+
+## 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd c1-accelerators-project-2
 ```
 
 ---
 
-## Repository Structure
+## 2. Create the Python environment
+
+From the project root:
+
+### Windows PowerShell
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### macOS/Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+---
+
+## 3. Install backend dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 4. Configure environment variables
+
+Create a local `.env` file from `.env.example`.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Then configure the values for your local environment.
+
+For local development, use:
+
+```env
+APP_ENV=development
+APP_NAME=TalentMatch AI
+DEBUG=true
+
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+
+DATABASE_URL=postgresql+psycopg://talentmatch:password@localhost:5432/talentmatch
+
+LLM_PROVIDER=mock
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=openai/gpt-oss-20b
+
+EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
+
+FRONTEND_URL=http://localhost:5173
+
+ANONYMOUS_SCREENING_SECRET=your_local_secret
+```
+
+### LLM provider
+
+For local development:
+
+```env
+LLM_PROVIDER=mock
+```
+
+A Groq API key is **not required** when using the mock provider.
+
+When Groq is configured for production:
+
+```env
+LLM_PROVIDER=groq
+GROQ_API_KEY=<your-groq-api-key>
+GROQ_MODEL=openai/gpt-oss-20b
+```
+
+Never commit `.env` or expose API keys in the frontend.
+
+---
+
+## 5. Start PostgreSQL
+
+The repository includes a Docker Compose configuration for PostgreSQL.
+
+From the project root:
+
+```bash
+docker compose up -d postgres
+```
+
+Verify the container is running:
+
+```bash
+docker ps
+```
+
+---
+
+## 6. Run database migrations
+
+From the project root:
+
+```bash
+alembic upgrade head
+```
+
+---
+
+## 7. Start the backend
+
+From the project root:
+
+```bash
+uvicorn backend.app.main:app --reload
+```
+
+The backend runs at:
+
+```text
+http://localhost:8000
+```
+
+Health check:
+
+```text
+http://localhost:8000/health
+```
+
+---
+
+## 8. Start the frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs at:
+
+```text
+http://localhost:5173
+```
+
+The frontend uses:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+If `VITE_API_BASE_URL` is not provided, the frontend defaults to `http://localhost:8000`.
+
+For a deployed frontend, set `VITE_API_BASE_URL` to the deployed backend URL.
+
+---
+
+# Testing
+
+## Backend tests
+
+From the project root:
+
+### Windows PowerShell
+
+```powershell
+$env:PYTHONPATH = "."
+python -m pytest backend/tests -q
+```
+
+The backend test suite covers authentication, jobs, candidates, matching, scoring, explanations, and API behavior.
+
+## Frontend lint
+
+```bash
+cd frontend
+npm run lint
+```
+
+## Frontend production build
+
+```bash
+npm run build
+```
+
+---
+
+# LLM Explanation Architecture
+
+Candidate explanations and candidate comparisons follow this flow:
+
+```text
+Frontend
+   ↓
+FastAPI explanation endpoint
+   ↓
+ExplanationService
+   ↓
+LLMClient
+   ↓
+MockLLMClient or GroqLLMClient
+```
+
+The deterministic matching engine supplies:
+
+* scores
+* rankings
+* skill matches
+* skill gaps
+* evidence
+* score breakdowns
+
+The LLM receives these results and produces a grounded explanation.
+
+The LLM must not:
+
+* calculate a new score
+* modify a score
+* change candidate rankings
+* recommend hiring or rejection
+* invent candidate experience
+* invent skills or evidence
+* infer protected characteristics
+* treat missing evidence as proof that a candidate lacks a skill
+
+---
+
+# Project Structure
 
 ```text
 c1-accelerators-project-2/
 │
 ├── backend/
 │   ├── app/
-│   │   ├── models/
 │   │   ├── routes/
+│   │   ├── services/
+│   │   ├── models/
 │   │   ├── schemas/
-│   │   ├── database.py
-│   │   ├── init_db.py
 │   │   └── main.py
+│   │
 │   └── tests/
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── layouts/
 │   │   ├── pages/
 │   │   ├── services/
-│   │   ├── types/
-│   │   └── utils/
-│   ├── package.json
-│   └── vite.config.ts
+│   │   └── ...
+│   └── package.json
 │
-├── intelligence/
-│   ├── models.py
-│   ├── extractor.py
-│   ├── skills.py
-│   └── normalizer.py
+├── llm/
+│   ├── __init__.py
+│   ├── client.py
+│   └── prompts.py
 │
 ├── matching/
-│   ├── embeddings.py
-│   ├── similarity.py
-│   ├── matcher.py
-│   ├── models.py
-│   ├── pipeline.py
-│   └── ranking.py
-│
 ├── scoring/
-│   └── scorer.py
-│
+├── intelligence/
 ├── ingestion/
-├── evidence/
-├── llm/
 ├── evaluation/
+├── evidence/
+├── alembic/
+├── data/
 ├── docs/
 ├── scripts/
-├── data/
-│
-├── alembic/
-│   ├── versions/
-│   └── env.py
 │
 ├── .env.example
 ├── .gitignore
@@ -177,542 +416,113 @@ c1-accelerators-project-2/
 
 ---
 
-# Core Modules
+# Development Notes
 
-## Intelligence
+### Local LLM testing
 
-The `intelligence/` module converts extracted document text into canonical structured profiles.
+Team members do not need a Groq API key to run the project locally.
 
-```text
-Raw text
-   ↓
-Section detection
-   ↓
-Pattern-based extraction
-   ↓
-Skill detection
-   ↓
-Skill normalization
-   ↓
-Evidence collection
-   ↓
-JobProfile / CandidateProfile
+Use:
+
+```env
+LLM_PROVIDER=mock
 ```
 
-The canonical domain models are defined in:
+This allows the complete explanation workflow to be tested without external API calls or Groq quota.
 
-```text
-intelligence/models.py
+### Production LLM
+
+Before production deployment, configure:
+
+```env
+LLM_PROVIDER=groq
+GROQ_API_KEY=<your-key>
+GROQ_MODEL=openai/gpt-oss-20b
 ```
 
-They include:
-
-* `Evidence`
-* `Skill`
-* `JobProfile`
-* `CandidateProfile`
-
-The intelligence layer is responsible for extracting information. It does not determine candidate rankings.
+The API key must be configured as a server-side environment variable and must never be placed in the React frontend.
 
 ---
 
-## Matching
+# Deployment
 
-The `matching/` module determines whether candidate skills satisfy job requirements.
-
-Matching supports:
-
-* Exact skill matching.
-* Normalized skill matching.
-* Semantic similarity matching.
-* Matched, partial, and missing statuses.
-* Candidate evidence preservation.
-* Skill gap generation.
-
-The semantic matching model is:
+The planned production architecture is:
 
 ```text
-BAAI/bge-small-en-v1.5
+Render
+│
+├── PostgreSQL
+│
+├── FastAPI Backend
+│
+└── React/Vite Frontend
 ```
 
-with 384-dimensional embeddings.
+The production backend will use the Render PostgreSQL database and the Groq LLM provider.
 
-Semantic similarity can identify a partial match, but semantic similarity alone does not automatically produce a fully matched status.
+Deployment configuration is maintained separately from local development configuration.
 
 ---
 
-## Scoring
+# Team Workflow
 
-The `scoring/` module produces deterministic candidate scores.
+Before pushing changes:
 
-The scoring weights are:
-
-| Criterion                  | Weight |
-| -------------------------- | -----: |
-| Required Skills            |    40% |
-| Relevant Experience        |    25% |
-| Responsibilities Alignment |    15% |
-| Education                  |    10% |
-| Preferred Skills           |    10% |
-
-The total candidate score is determined by these deterministic components.
-
-The frontend must display these results rather than independently calculating them.
-
----
-
-## Ranking
-
-Candidate ranking is performed from deterministic score results.
-
-The LLM is **not involved in ranking**.
-
-Candidates with equal scores retain their input ordering through stable sorting.
-
----
-
-## Backend
-
-The `backend/` module provides the FastAPI API and database persistence layer.
-
-### Technology
-
-* Python 3.11
-* FastAPI
-* Pydantic
-* SQLAlchemy
-* PostgreSQL
-* Psycopg
-* Alembic
-* Pytest
-
-### Current API
-
-#### Health
-
-```text
-GET /health
+```bash
+git status
 ```
 
-Checks that the API is running.
-
-#### Job descriptions
-
-```text
-POST /jobs
-GET /jobs
-GET /jobs/{job_id}
-```
-
-Job descriptions are stored as original text in:
-
-```text
-Job.raw_text
-```
-
-#### Job profiles
-
-```text
-POST /jobs/{job_id}/profile
-GET /jobs/{job_id}/profile
-```
-
-Only one structured profile can currently be associated with each job.
-
-A duplicate profile request returns:
-
-```text
-409 Conflict
-```
-
-An unknown job or profile returns:
-
-```text
-404 Not Found
-```
-
----
-
-## Canonical Job Profile Contract
-
-The backend imports:
-
-```python
-from intelligence.models import JobProfile
-```
-
-rather than maintaining a second independent profile contract.
-
-A `JobProfile` contains:
-
-* Optional title.
-* Required `Skill` objects.
-* Preferred `Skill` objects.
-* Skill-level evidence.
-* Minimum experience requirement.
-* Education requirements.
-* Responsibilities.
-* General profile evidence.
-
-Each skill preserves:
-
-```text
-name
-normalized_name
-required
-evidence
-```
-
-Each evidence item preserves:
-
-```text
-text
-location
-```
-
-The original job description remains in `Job.raw_text` and is not duplicated inside the structured profile.
-
----
-
-# Database
-
-The backend uses:
-
-* PostgreSQL for application persistence.
-* SQLAlchemy for ORM/database access.
-* Alembic for schema migrations.
-
-The current schema includes:
-
-```text
-jobs
-job_profiles
-```
-
-Database schema changes should be made through Alembic migrations rather than relying on `Base.metadata.create_all()` for production schema management.
-
-`create_all()` is retained only as a development/test foundation helper where appropriate.
-
----
-
-# Frontend
-
-The recruiter-facing frontend is built with:
-
-* React
-* TypeScript
-* Vite
-* CSS
-* ESLint
-
-The frontend currently uses mock data while backend services are being integrated.
-
-## Recruiter Workflow
-
-```text
-Landing
-   │
-   ▼
-Screening Setup
-   │
-   │ Run Candidate Screening
-   ▼
-Candidate Dashboard
-   │
-   ├───────────────┐
-   │               │
-   ▼               ▼
-Candidate Review   Candidate Comparison
-   │               │
-   │               ▼
-   │        AI Comparison Summary
-   ▼
-Grounded AI Explanation
-```
-
-### Screening Setup
-
-Recruiters can:
-
-* Enter a job title.
-* Paste a job description.
-* Upload a job description.
-* Upload multiple candidate resumes.
-* Start the screening workflow.
-
-### Candidate Dashboard
-
-The dashboard provides:
-
-* Extracted job requirements.
-* Candidate ranking.
-* Overall fit score.
-* Required skill coverage.
-* Matched skills.
-* Missing skills.
-* Candidate processing status.
-* Candidate search.
-* Minimum score filtering.
-* Required skill coverage filtering.
-
-Frontend filtering does not recalculate or modify candidate ranking.
-
-### Candidate Review
-
-Candidate-level review includes:
-
-* Overall fit score.
-* Required skill coverage.
-* Deterministic score breakdown.
-* Required skills.
-* Relevant experience.
-* Responsibilities alignment.
-* Education.
-* Preferred skills.
-* Skill match status.
-* Resume evidence.
-* Skill gaps.
-* Grounded LLM explanation.
-
-The interface explicitly communicates that the LLM does not determine candidate scores or rankings.
-
-### Candidate Comparison
-
-Recruiters can select up to three candidates and compare them side by side.
-
-Comparison includes:
-
-* Overall fit.
-* Required skill coverage.
-* Preferred skill coverage.
-* Relevant experience.
-* Education.
-* Responsibilities alignment.
-* Matched skills.
-* Major skill gaps.
-* Supporting evidence.
-* AI comparison summary.
-
-Comparison is displayed only after the recruiter explicitly selects candidates and chooses **Compare selected**.
-
----
-
-# LLM Explanations
-
-TalentMatch uses Groq for grounded explanations.
-
-The LLM is responsible for:
-
-* Explaining deterministic matching results.
-* Summarizing supporting evidence.
-* Explaining candidate strengths.
-* Highlighting skill gaps.
-* Generating candidate comparison summaries.
-
-The LLM must **not**:
-
-* Calculate candidate scores.
-* Modify candidate scores.
-* Determine candidate ranking.
-* Invent resume evidence.
-* Infer protected or sensitive characteristics.
-
-The LLM receives the deterministic results and supporting evidence produced by the matching system.
-
----
-
-# Responsible AI
-
-TalentMatch AI is a recruiter decision-support system.
-
-The system is designed so that:
-
-* Candidate fit is determined by deterministic matching logic.
-* Candidate rankings are deterministic.
-* LLM output is explanatory rather than authoritative.
-* Evidence remains traceable to source documents.
-* Missing evidence is not silently treated as proof of absence.
-* Protected or sensitive characteristics are not used for candidate scoring.
-* Human review remains part of the recruitment process.
-
-The system does not make autonomous hiring decisions.
-
----
-
-# Requirements
-
-Install:
-
-* Python 3.11
-* Node.js
-* npm
-* PostgreSQL for local database development
-
-Verify Python:
+Run backend tests:
 
 ```powershell
-python --version
+$env:PYTHONPATH = "."
+python -m pytest backend/tests -q
 ```
 
-Verify Node.js and npm:
+Run frontend checks:
 
-```powershell
-node --version
-npm --version
+```bash
+cd frontend
+npm run lint
+npm run build
 ```
 
----
+Then commit and push the changes.
 
-# Backend Setup
-
-From the repository root:
-
-## 1. Create a virtual environment
-
-```powershell
-py -3.11 -m venv talentmatch-env
-```
-
-Activate it:
-
-```powershell
-.\talentmatch-env\Scripts\Activate.ps1
-```
-
-## 2. Install shared dependencies
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-## 3. Configure environment variables
-
-Create a `.env` file in the repository root.
-
-Example:
+Do not commit:
 
 ```text
-DATABASE_URL=postgresql+psycopg://talentmatch:YOUR_PASSWORD@localhost:5432/talentmatch
+.env
+.venv/
+node_modules/
 ```
 
-Never commit `.env`.
+Use `.env.example` as the shared environment-variable template.
 
-Use `.env.example` as the template for required environment variables.
+---
 
-## 4. Apply database migrations
+# Project Status
 
-```powershell
-python -m alembic upgrade head
-```
-
-## 5. Start the API
-
-```powershell
-python -m uvicorn backend.app.main:app --reload
-```
-
-The API will be available at:
+TalentMatch AI currently supports the core recruiter workflow:
 
 ```text
-http://127.0.0.1:8000
+Job Description
+      ↓
+Job Profile
+      ↓
+Resume Upload
+      ↓
+Candidate Processing
+      ↓
+Deterministic Matching
+      ↓
+Scoring & Ranking
+      ↓
+Candidate Review
+      ↓
+Candidate Comparison
+      ↓
+Grounded LLM Explanation
 ```
 
-Interactive API documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# Frontend Setup
-
-From the repository root:
-
-Install dependencies:
-
-```powershell
-npm --prefix frontend install
-```
-
-Start the Vite development server:
-
-```powershell
-npm --prefix frontend run dev
-```
-
-The frontend will normally be available at:
-
-```text
-http://localhost:5173/
-```
-
-Vite provides Hot Module Replacement during development.
-
----
-
-# Testing
-
-Run the complete Python test suite from the repository root:
-
-```powershell
-python -m pytest
-```
-
-Backend tests use an isolated SQLite database rather than the developer's local PostgreSQL database.
-
-Migration tests use a separate temporary database to validate the Alembic migration path.
-
-The test suite covers areas including:
-
-* Intelligence extraction.
-* Skill normalization.
-* Evidence extraction.
-* Matching.
-* Semantic similarity.
-* Deterministic scoring.
-* Candidate ranking.
-* Matching pipeline.
-* Backend database behavior.
-* API validation.
-* Job endpoints.
-* Job profile endpoints.
-* Database migrations.
-
----
-
-# Frontend Validation
-
-Run ESLint:
-
-```powershell
-npm --prefix frontend run lint
-```
-
-Build the frontend:
-
-```powershell
-npm --prefix frontend run build
-```
-
-Both should complete successfully before submitting frontend changes.
-
----
-
-# Development Workflow
-
-Development should be performed on feature branches rather than directly on `main`.
-
-Create a branch:
-
-```powershell
-git checkout -b feat/describe-change
-```
-
-Make the changes and validate them.
-
-For backend changes:
-
-```powershell
-python -m pytes
-```
+The local development environment can run the complete workflow using the mock LLM provider without requiring a Groq API key.

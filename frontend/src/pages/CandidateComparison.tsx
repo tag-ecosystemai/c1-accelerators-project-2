@@ -812,8 +812,8 @@ function CandidateComparison({
 
                 <span>
                   {comparisonExplanation
-                    ? `Groq · ${comparisonExplanation.model}`
-                    : 'Groq · Explanation only'}
+                    ? `${comparisonExplanation.model} · Explanation only`
+                    : 'Explanation only'}
                 </span>
               </div>
 
