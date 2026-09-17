@@ -1,10 +1,16 @@
 import type { ReactNode } from 'react'
 
-type RecruiterPage = 'setup' | 'dashboard' | 'review' | 'comparison'
+export type RecruiterPage =
+  | 'setup'
+  | 'dashboard'
+  | 'review'
+  | 'comparison'
+  | 'history'
 
 interface RecruiterLayoutProps {
   activePage: RecruiterPage
   onNavigate: (page: RecruiterPage) => void
+  onNewScreening: () => void
   children: ReactNode
 }
 
@@ -30,14 +36,22 @@ const navItems: NavItem[] = [
     label: 'Compare',
     description: 'Compare candidates',
   },
+  {
+    id: 'history',
+    label: 'History',
+    description: 'Previous screenings',
+  },
 ]
 
 function RecruiterLayout({
   activePage,
   onNavigate,
+  onNewScreening,
   children,
 }: RecruiterLayoutProps) {
-  const activeItem = navItems.find((item) => item.id === activePage)
+  const activeItem = navItems.find(
+    (item) => item.id === activePage,
+  )
 
   return (
     <div className="recruiter-app">
@@ -50,7 +64,9 @@ function RecruiterLayout({
           }}
           aria-label="Go to screening"
         >
-          <span className="recruiter-brand-mark">T</span>
+          <span className="recruiter-brand-mark">
+            T
+          </span>
 
           <span className="recruiter-brand-name">
             <strong>TalentMatch</strong>
@@ -84,7 +100,23 @@ function RecruiterLayout({
             <span>Workspace</span>
           </div>
 
-          <nav className="recruiter-nav" aria-label="Recruiter workspace">
+          <button
+            type="button"
+            className="recruiter-nav-item"
+            onClick={onNewScreening}
+          >
+            <span className="recruiter-nav-indicator" />
+
+            <span className="recruiter-nav-copy">
+              <strong>New Screening</strong>
+              <small>Start a new role</small>
+            </span>
+          </button>
+
+          <nav
+            className="recruiter-nav"
+            aria-label="Recruiter workspace"
+          >
             {navItems.map((item) => {
               const isActive = item.id === activePage
 
@@ -96,7 +128,9 @@ function RecruiterLayout({
                     isActive ? 'active' : ''
                   }`}
                   onClick={() => onNavigate(item.id)}
-                  aria-current={isActive ? 'page' : undefined}
+                  aria-current={
+                    isActive ? 'page' : undefined
+                  }
                 >
                   <span className="recruiter-nav-indicator" />
 
@@ -117,7 +151,8 @@ function RecruiterLayout({
             <strong>Evidence-based</strong>
 
             <p>
-              Scores and rankings are determined by the matching engine.
+              Scores and rankings are determined by the
+              matching engine.
             </p>
           </div>
         </aside>
@@ -125,8 +160,13 @@ function RecruiterLayout({
         <main className="recruiter-main">
           <div className="recruiter-page-heading">
             <div>
-              <span className="recruiter-page-eyebrow">TalentMatch</span>
-              <h1>{activeItem?.label ?? 'Workspace'}</h1>
+              <span className="recruiter-page-eyebrow">
+                TalentMatch
+              </span>
+
+              <h1>
+                {activeItem?.label ?? 'Workspace'}
+              </h1>
             </div>
 
             <span className="recruiter-page-status">
@@ -134,7 +174,9 @@ function RecruiterLayout({
             </span>
           </div>
 
-          <div className="recruiter-content">{children}</div>
+          <div className="recruiter-content">
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -36,6 +36,7 @@ def test_alembic_upgrade_head_creates_canonical_schema(tmp_path):
 
         assert job_columns == {
             "id",
+            "user_id",
             "raw_text",
             "created_at",
         }
