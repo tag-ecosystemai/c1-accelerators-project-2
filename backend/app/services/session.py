@@ -17,7 +17,9 @@ def generate_session_token() -> str:
 
 
 def hash_session_token(token: str) -> str:
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+    return hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()
 
 
 def create_session(
@@ -30,7 +32,10 @@ def create_session(
     session = Session(
         token_hash=token_hash,
         user_id=user_id,
-        expires_at=datetime.now(timezone.utc) + SESSION_DURATION,
+        expires_at=(
+            datetime.now(timezone.utc)
+            + SESSION_DURATION
+        ),
     )
 
     db.add(session)
@@ -55,7 +60,16 @@ def get_session_by_token(
     if session is None:
         return None
 
-    if session.expires_at <= datetime.now(timezone.utc):
+    expires_at = session.expires_at
+
+    # SQLite does not preserve timezone information for
+    # DateTime(timezone=True). Normalize it before comparing.
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(
+            tzinfo=timezone.utc
+        )
+
+    if expires_at <= datetime.now(timezone.utc):
         db.delete(session)
         db.commit()
         return None
@@ -67,7 +81,10 @@ def delete_session(
     db: DbSession,
     token: str,
 ) -> None:
-    session = get_session_by_token(db, token)
+    session = get_session_by_token(
+        db,
+        token,
+    )
 
     if session is None:
         return

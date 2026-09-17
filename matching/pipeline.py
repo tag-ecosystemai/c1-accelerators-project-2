@@ -31,6 +31,7 @@ class MatchingPipeline:
         self,
         job: JobProfile,
         candidate: CandidateProfile,
+        candidate_id: str | None = None,
     ) -> CandidateMatchResult:
         """Match and score a candidate against a job."""
 
@@ -38,6 +39,9 @@ class MatchingPipeline:
             job,
             candidate,
         )
+
+        if candidate_id is not None:
+            match_result.candidate_id = candidate_id
 
         score_breakdown = self.scorer.score(
             job,

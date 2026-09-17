@@ -6,11 +6,11 @@ from .parsers.pdf import parse_pdf
 from .parsers.txt import parse_txt
 
 
-def parse_resume(file_path: str) -> ParsedDocument:
+def parse_document(file_path: str) -> ParsedDocument:
     """Parse a supported document into a ParsedDocument.
 
     Parsing failures are converted into a structured failed result so that
-    one bad document cannot stop batch processing.
+    callers can handle invalid documents without an unhandled exception.
     """
 
     filename = os.path.basename(file_path)
@@ -46,3 +46,12 @@ def parse_resume(file_path: str) -> ParsedDocument:
         )
 
     return result
+
+
+def parse_resume(file_path: str) -> ParsedDocument:
+    """Parse a resume using the shared document parser.
+
+    Kept as a compatibility wrapper for the existing candidate pipeline.
+    """
+
+    return parse_document(file_path)

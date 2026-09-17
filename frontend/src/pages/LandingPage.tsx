@@ -1,15 +1,22 @@
 interface LandingPageProps {
     onLogin: () => void
+    onContinueWithoutLogin: () => void
 }
 
-function LandingPage({ onLogin }: LandingPageProps) {
+function LandingPage({
+    onLogin,
+    onContinueWithoutLogin,
+}: LandingPageProps) {
     return (
         <main className="landing-page">
             <header className="landing-header">
                 <a href="/" className="landing-logo">
-                    <span className="landing-logo-mark">T</span>
+                    <span className="landing-logo-mark" aria-hidden="true">
+                        <span className="logo-mark-shape logo-mark-shape-one" />
+                        <span className="logo-mark-shape logo-mark-shape-two" />
+                    </span>
 
-                    <span>
+                    <span className="landing-logo-name">
                         <strong>TalentMatch</strong>
                         <small>AI</small>
                     </span>
@@ -56,6 +63,14 @@ function LandingPage({ onLogin }: LandingPageProps) {
                             <span aria-hidden="true">→</span>
                         </button>
 
+                        <button
+                            type="button"
+                            className="landing-secondary-button"
+                            onClick={onContinueWithoutLogin}
+                        >
+                            Continue without login
+                        </button>
+
                         <a href="#how-it-works" className="landing-secondary-button">
                             See how it works
                         </a>
@@ -67,22 +82,42 @@ function LandingPage({ onLogin }: LandingPageProps) {
                     </div>
                 </div>
 
+
                 <div className="landing-product-area">
                     <div className="landing-accent-block landing-accent-block-left" />
                     <div className="landing-accent-block landing-accent-block-top" />
 
                     <div className="landing-product-card">
                         <div className="product-card-header">
-                            <div>
-                                <span className="product-card-label">SCREENING RESULT</span>
+                            <div className="product-card-heading">
+                                <span>Screening result</span>
                                 <strong>Senior Python Engineer</strong>
                             </div>
 
-                            <span className="product-card-status">Processed</span>
+                            <span className="product-status">
+                                <i />
+                                Processed
+                            </span>
+                        </div>
+
+                        <div className="product-score">
+                            <div>
+                                <span className="product-score-label">
+                                    Candidate match
+                                </span>
+                            </div>
+
+                            <div>
+                                <strong className="product-score-value">
+                                    91<small>%</small>
+                                </strong>
+                            </div>
                         </div>
 
                         <div className="product-card-candidate">
-                            <div className="candidate-avatar">AO</div>
+                            <div className="candidate-avatar">
+                                AO
+                            </div>
 
                             <div className="candidate-details">
                                 <strong>Amara Okafor</strong>
@@ -90,8 +125,8 @@ function LandingPage({ onLogin }: LandingPageProps) {
                             </div>
 
                             <div className="candidate-score">
-                                <strong>91%</strong>
-                                <span>Strong match</span>
+                                <span>Match strength</span>
+                                <strong>Strong</strong>
                             </div>
                         </div>
 
@@ -100,7 +135,7 @@ function LandingPage({ onLogin }: LandingPageProps) {
                         <div className="product-card-section">
                             <div className="product-section-heading">
                                 <span>Required skills</span>
-                                <strong>4 / 4</strong>
+                                <strong>4 / 4 matched</strong>
                             </div>
 
                             <div className="product-skill-list">
@@ -114,32 +149,58 @@ function LandingPage({ onLogin }: LandingPageProps) {
                         <div className="product-card-section">
                             <div className="product-section-heading">
                                 <span>Score breakdown</span>
-                                <span className="product-section-muted">/ 100</span>
+                                <span className="product-section-muted">91 / 100</span>
                             </div>
 
                             <div className="product-score-list">
                                 <div className="product-score-row">
                                     <span>Required skills</span>
-                                    <div>
-                                        <i style={{ width: '95%' }} />
+
+                                    <div className="product-score-track">
+                                        <span style={{ width: '95%' }} />
                                     </div>
+
                                     <strong>38</strong>
                                 </div>
 
                                 <div className="product-score-row">
                                     <span>Experience</span>
-                                    <div>
-                                        <i style={{ width: '92%' }} />
+
+                                    <div className="product-score-track">
+                                        <span style={{ width: '92%' }} />
                                     </div>
+
                                     <strong>23</strong>
                                 </div>
 
                                 <div className="product-score-row">
                                     <span>Responsibilities</span>
-                                    <div>
-                                        <i style={{ width: '93%' }} />
+
+                                    <div className="product-score-track">
+                                        <span style={{ width: '93%' }} />
                                     </div>
+
                                     <strong>14</strong>
+                                </div>
+
+                                <div className="product-score-row">
+                                    <span>Education</span>
+
+                                    <div className="product-score-track">
+                                        <span style={{ width: '80%' }} />
+                                    </div>
+
+                                    <strong>8</strong>
+                                </div>
+
+                                <div className="product-score-row">
+                                    <span>Preferred skills</span>
+
+                                    <div className="product-score-track">
+                                        <span style={{ width: '80%' }} />
+                                    </div>
+
+                                    <strong>8</strong>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +208,8 @@ function LandingPage({ onLogin }: LandingPageProps) {
                         <div className="product-evidence">
                             <div className="product-evidence-heading">
                                 <span className="evidence-icon">✓</span>
-                                <span>Evidence found in resume</span>
+
+                                <span>Resume evidence</span>
                             </div>
 
                             <p>
@@ -157,16 +219,18 @@ function LandingPage({ onLogin }: LandingPageProps) {
                         </div>
 
                         <div className="product-card-footer">
-                            <span>Matching engine</span>
+                            <span>Scoring</span>
                             <strong>Deterministic</strong>
                         </div>
                     </div>
 
                     <div className="landing-floating-card">
                         <span>LLM explanation</span>
-                        <strong>Grounded in evidence</strong>
+                        <strong>Grounded in resume evidence</strong>
                     </div>
                 </div>
+
+
             </section>
 
             <section className="landing-proof">
@@ -346,9 +410,12 @@ function LandingPage({ onLogin }: LandingPageProps) {
 
             <footer className="landing-footer">
                 <div className="landing-logo">
-                    <span className="landing-logo-mark">T</span>
+                    <span className="landing-logo-mark" aria-hidden="true">
+                        <span className="logo-mark-shape logo-mark-shape-one" />
+                        <span className="logo-mark-shape logo-mark-shape-two" />
+                    </span>
 
-                    <span>
+                    <span className="landing-logo-name">
                         <strong>TalentMatch</strong>
                         <small>AI</small>
                     </span>
@@ -361,3 +428,4 @@ function LandingPage({ onLogin }: LandingPageProps) {
 }
 
 export default LandingPage
+
