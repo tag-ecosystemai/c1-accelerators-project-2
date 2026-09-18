@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import {
   getCandidate,
   getCandidateExplanation,
@@ -799,12 +800,22 @@ function CandidateReview({
             <span>“</span>
           </div>
 
-          <p>
-            {explanationLoading
-              ? 'Generating grounded explanation...'
-              : explanation?.explanation ??
-                'No grounded explanation is currently available.'}
-          </p>
+          <div className="review-explanation-markdown">
+            {explanationLoading ? (
+              <p>
+                Generating grounded explanation...
+              </p>
+            ) : explanation?.explanation ? (
+              <ReactMarkdown>
+                {explanation.explanation}
+              </ReactMarkdown>
+            ) : (
+              <p>
+                No grounded explanation is currently
+                available.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="review-explanation-notice">

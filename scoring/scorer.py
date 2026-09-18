@@ -79,8 +79,15 @@ class ScoringEngine:
         )
 
     @staticmethod
-    def _required_skill_score(match_result: MatchResult) -> float:
-        """Calculate required-skill coverage as a percentage."""
+    def _required_skill_score(
+        match_result: MatchResult,
+    ) -> float:
+        """
+        Calculate required-skill coverage as a percentage.
+
+        If the job has no required skills, return 100 because
+        there is no required-skill deficit to penalise.
+        """
 
         required_matches = [
             match
@@ -89,18 +96,27 @@ class ScoringEngine:
         ]
 
         if not required_matches:
-            return 0.0
+            return 100.0
 
         matched_score = sum(
             match.match_score
             for match in required_matches
         )
 
-        return (matched_score / len(required_matches)) * 100
+        return (
+            matched_score / len(required_matches)
+        ) * 100
 
     @staticmethod
-    def _preferred_skill_score(match_result: MatchResult) -> float:
-        """Calculate preferred-skill coverage as a percentage."""
+    def _preferred_skill_score(
+        match_result: MatchResult,
+    ) -> float:
+        """
+        Calculate preferred-skill coverage as a percentage.
+
+        If the job has no preferred skills, return 100 because
+        there is no preferred-skill deficit to penalise.
+        """
 
         preferred_matches = [
             match
@@ -109,14 +125,16 @@ class ScoringEngine:
         ]
 
         if not preferred_matches:
-            return 0.0
+            return 100.0
 
         matched_score = sum(
             match.match_score
             for match in preferred_matches
         )
 
-        return (matched_score / len(preferred_matches)) * 100
+        return (
+            matched_score / len(preferred_matches)
+        ) * 100
 
     @staticmethod
     def _experience_score(
@@ -135,7 +153,10 @@ class ScoringEngine:
         if required_years <= 0:
             return 100.0
 
-        return min(candidate_years / required_years, 1.0) * 100
+        return min(
+            candidate_years / required_years,
+            1.0,
+        ) * 100
 
     def _responsibilities_score(
         self,
@@ -178,7 +199,9 @@ class ScoringEngine:
             else:
                 scores.append(0.0)
 
-        return (sum(scores) / len(scores)) * 100
+        return (
+            sum(scores) / len(scores)
+        ) * 100
 
     @staticmethod
     def _education_score(
@@ -204,4 +227,7 @@ class ScoringEngine:
             if requirement.lower() in candidate_education
         )
 
-        return (matched / len(job.education_requirements)) * 100
+        return (
+            matched / len(job.education_requirements)
+        ) * 100
+

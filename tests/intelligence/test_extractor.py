@@ -203,6 +203,26 @@ Preferred Skills
             "docker",
             "kubernetes",
         }
+        
+    def test_application_instructions_do_not_create_required_skills(self):
+        text = """Mobile App Developer / Engineer
+
+Requirements
+Good understanding of software development principles and best practices.
+Strong problem-solving and communication skills.
+
+How to Apply
+Interested candidates should send their CV and relevant portfolio / GitHub / app samples to jobs@example.com.
+"""
+
+        job = extract_job_profile(text)
+
+        required = {
+            skill.normalized_name
+            for skill in job.required_skills
+        }
+
+        assert "github" not in required
 
     def test_required_skill_wins_over_preferred_skill(self):
         text = """Backend Engineer
