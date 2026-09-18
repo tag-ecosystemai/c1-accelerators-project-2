@@ -44,7 +44,6 @@ def extract_skills(
     dedicated_section: bool = False,
 ) -> list[Skill]:
     """Extract recognized skills and preserve supporting evidence."""
-
     extracted: dict[str, Skill] = {}
 
     for sentence_match in re.finditer(
@@ -75,7 +74,6 @@ def extract_skills(
                 continue
 
             normalized_name = normalize_skill(alias)
-
             skill = extracted.get(normalized_name)
 
             if skill is None:
@@ -154,7 +152,6 @@ ALL_SECTION_HEADINGS = {
 
 def _normalize_heading(line: str) -> str:
     """Normalize a possible section heading for comparison."""
-
     return re.sub(
         r"[:\s]+$",
         "",
@@ -163,22 +160,94 @@ def _normalize_heading(line: str) -> str:
 
 
 def _is_section_heading(line: str) -> bool:
-    """Determine whether a line is a known document section heading."""
-
     normalized = _normalize_heading(line)
 
     if normalized in ALL_SECTION_HEADINGS:
         return True
 
-    return (
-        line.strip().isupper()
-        and 1 <= len(line.strip().split()) <= 6
+    stripped = line.strip()
+
+    if not stripped:
+        return False
+
+    # List items are section content, never section headings.
+    if stripped.startswith(("-", "*", "•")):
+        return False
+
+    # A section heading should be a short standalone line.
+    if len(stripped) > 80:
+        return False
+
+    # Headings normally do not end like a sentence.
+    if re.search(r"[.!?,;:]$", stripped):
+        return False
+
+    words = stripped.split()
+
+    if not (1 <= len(words) <= 8):
+        return False
+
+    # Conventional ALL-CAPS headings.
+    if stripped.isupper():
+        return True
+
+    return False
+
+
+def _looks_like_section_heading(
+    lines: list[str],
+    index: int,
+) -> bool:
+    """Detect an unknown section heading using surrounding document structure."""
+    line = lines[index].strip()
+
+    if not line:
+        return False
+
+    # Known section headings are handled by _is_section_heading().
+    if _is_section_heading(line):
+        return True
+
+    # A heading should be short and standalone.
+    if len(line) > 80:
+        return False
+
+    if line.startswith(("-", "*", "•")):
+        return False
+
+    if re.search(r"[.!?,;:]$", line):
+        return False
+
+    words = line.split()
+
+    if not (2 <= len(words) <= 8):
+        return False
+
+    # We need surrounding blank-line structure.
+    previous_is_blank = (
+        index > 0 and not lines[index - 1].strip()
     )
+
+    next_is_content = (
+        index + 1 < len(lines)
+        and bool(lines[index + 1].strip())
+    )
+
+    if not previous_is_blank or not next_is_content:
+        return False
+
+    # Unknown headings are generally title-like, but require
+    # most words to begin with uppercase letters.
+    capitalized_words = sum(
+        bool(re.match(r"^[A-Z]", word))
+        for word in words
+    )
+
+    return capitalized_words >= len(words) // 2
 
 
 def _extract_section(text: str, headings: list[str]) -> str:
     """Extract text belonging to a specific document section."""
-
     lines = text.splitlines()
 
     target_headings = {
@@ -189,7 +258,7 @@ def _extract_section(text: str, headings: list[str]) -> str:
     section_lines: list[str] = []
     collecting = False
 
-    for line in lines:
+    for index, line in enumerate(lines):
         stripped = line.strip()
 
         if not stripped:
@@ -202,10 +271,12 @@ def _extract_section(text: str, headings: list[str]) -> str:
         if not collecting:
             if normalized_line in target_headings:
                 collecting = True
-
             continue
 
         if _is_section_heading(stripped):
+            break
+
+        if _looks_like_section_heading(lines, index):
             break
 
         section_lines.append(stripped)
@@ -215,7 +286,6 @@ def _extract_section(text: str, headings: list[str]) -> str:
 
 def _extract_title(text: str) -> str | None:
     """Extract a likely job title from the beginning of a job description."""
-
     lines = [
         line.strip()
         for line in text.splitlines()
@@ -247,7 +317,6 @@ def _extract_title(text: str) -> str | None:
 
 def _extract_experience_requirement(text: str) -> float | None:
     """Extract the minimum required years of experience from a job description."""
-
     required_patterns = [
         r"minimum\s+(?:of\s+)?(\d+(?:\.\d+)?)\s*\+?\s+years?",
         r"at\s+least\s+(\d+(?:\.\d+)?)\s*\+?\s+years?",
@@ -276,7 +345,6 @@ def _extract_experience_requirement(text: str) -> float | None:
         re.IGNORECASE,
     ):
         start, end = match.span()
-
         context = text[max(0, start - 80): end + 80].lower()
 
         if re.search(
@@ -292,7 +360,6 @@ def _extract_experience_requirement(text: str) -> float | None:
 
 def _extract_list_items(section: str) -> list[str]:
     """Convert a section into clean individual items."""
-
     items: list[str] = []
 
     for line in section.splitlines():
@@ -302,13 +369,13 @@ def _extract_list_items(section: str) -> list[str]:
             continue
 
         cleaned = re.sub(
-            r"^[•\-\*\u2022]\s*",
+            r"^[•*\-]\s*",
             "",
             cleaned,
         )
 
         cleaned = re.sub(
-            r"^\d+[\.)]\s*",
+            r"^\d+[.)]\s*",
             "",
             cleaned,
         )
@@ -321,7 +388,6 @@ def _extract_list_items(section: str) -> list[str]:
 
 def _deduplicate_skills(skills: list[Skill]) -> list[Skill]:
     """Remove duplicate normalized skills while preserving evidence."""
-
     unique: dict[str, Skill] = {}
 
     for skill in skills:
@@ -349,7 +415,6 @@ def _remove_required_from_preferred(
     preferred_skills: list[Skill],
 ) -> list[Skill]:
     """Remove skills from preferred when they are also required."""
-
     required_names = {
         skill.normalized_name
         for skill in required_skills
@@ -364,7 +429,6 @@ def _remove_required_from_preferred(
 
 def extract_job_profile(text: str) -> JobProfile:
     """Extract a structured job profile from raw job-description text."""
-
     required_section = _extract_section(
         text,
         [
@@ -422,13 +486,32 @@ def extract_job_profile(text: str) -> JobProfile:
         dedicated_section=True,
     )
 
+    # If a dedicated requirement section exists, contextual extraction
+    # must stay inside that section. This prevents unrelated sections
+    # such as "Application" from contributing skills.
+    #
+    # If no dedicated section exists, use the full text so short
+    # standalone requirements such as "Programming in Go is required."
+    # can still be detected.
+    contextual_required_text = (
+        required_section
+        if required_section
+        else text
+    )
+
+    contextual_preferred_text = (
+        preferred_section
+        if preferred_section
+        else text
+    )
+
     contextual_required = _extract_contextual_skills(
-        text,
+        contextual_required_text,
         required=True,
     )
 
     contextual_preferred = _extract_contextual_skills(
-        text,
+        contextual_preferred_text,
         required=False,
     )
 
@@ -468,14 +551,13 @@ def _extract_contact_info(
     text: str,
 ) -> tuple[str | None, str | None]:
     """Extract email address and phone number from resume text."""
-
     email_match = re.search(
         r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
         text,
     )
 
     phone_match = re.search(
-        r"(?<!\d)(?:\+?\d[\d\s().-]{7,}\d)(?!\d)",
+        r"(?<!\d)\+?\d[\d\s().-]{7,}\d(?!\d)",
         text,
     )
 
@@ -496,7 +578,6 @@ def _extract_contact_info(
 
 def _extract_candidate_name(text: str) -> str | None:
     """Extract a likely candidate name from the beginning of a resume."""
-
     lines = [
         line.strip()
         for line in text.splitlines()
@@ -529,7 +610,6 @@ def _extract_experience_years(
     text: str,
 ) -> float | None:
     """Estimate total experience from explicit years-of-experience statements."""
-
     pattern = (
         r"(\d+(?:\.\d+)?)\+?\s+years?"
         r"\s+(?:of\s+)?(?:professional\s+)?experience"
@@ -592,7 +672,6 @@ def _build_section_evidence(
     location: str,
 ) -> list[Evidence]:
     """Convert extracted section items into general candidate evidence."""
-
     evidence: list[Evidence] = []
 
     for item in _extract_list_items(section):
@@ -610,7 +689,6 @@ def extract_candidate_profile(
     text: str,
 ) -> CandidateProfile:
     """Extract a structured candidate profile from resume text."""
-
     email, phone = _extract_contact_info(text)
 
     skills_section = _extract_section(
@@ -682,8 +760,7 @@ def _extract_contextual_skills(
     text: str,
     required: bool,
 ) -> list[Skill]:
-    """Extract skills from sentences that indicate requirement level."""
-
+    """Extract skills from sentences that explicitly indicate requirement level."""
     extracted: list[Skill] = []
     seen: set[str] = set()
 
@@ -704,6 +781,8 @@ def _extract_contextual_skills(
             r"\bdesired\b",
             r"\bbonus\b",
             r"\bplus\b",
+            r"\bis\s+an\s+advantage\b",
+            r"\bare\s+an\s+advantage\b",
         ]
     )
 

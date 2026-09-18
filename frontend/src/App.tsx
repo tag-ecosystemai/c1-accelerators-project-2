@@ -3,6 +3,7 @@ import { useState } from 'react'
 import './App.css'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import RecruiterLayout, {
   type RecruiterPage,
 } from './layouts/RecruiterLayout'
@@ -15,6 +16,7 @@ import History from './pages/History'
 type Page =
   | 'landing'
   | 'login'
+  | 'register'
   | RecruiterPage
 
 function App() {
@@ -53,6 +55,17 @@ function App() {
           setSelectedCandidateId(null)
           setPage('setup')
         }}
+        onRegister={() => setPage('register')}
+        onBack={() => setPage('landing')}
+      />
+    )
+  }
+
+  if (page === 'register') {
+    return (
+      <RegisterPage
+        onRegisterSuccess={() => setPage('setup')}
+        onLogin={() => setPage('login')}
         onBack={() => setPage('landing')}
       />
     )
