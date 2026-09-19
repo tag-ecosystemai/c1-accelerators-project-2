@@ -81,6 +81,8 @@ function mapCandidate(
   const coverage = candidate.required_skill_coverage
 
   return {
+    // Keep the database ID internally because it is required
+    // when opening the candidate review page and calling the API.
     id: String(candidate.candidate.id),
     rank: candidate.rank,
     name: getCandidateName(candidate),
@@ -193,9 +195,6 @@ function CandidateDashboard({
       const matchesSearch =
         !searchValue ||
         candidate.name
-          .toLowerCase()
-          .includes(searchValue) ||
-        candidate.id
           .toLowerCase()
           .includes(searchValue)
 
@@ -461,10 +460,6 @@ function CandidateDashboard({
                       <strong>
                         {candidate.name}
                       </strong>
-
-                      <small>
-                        {candidate.id}
-                      </small>
                     </span>
                   </span>
 

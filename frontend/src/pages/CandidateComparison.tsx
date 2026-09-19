@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import {
   compareCandidates,
   getComparisonExplanation,
@@ -551,11 +552,6 @@ function CandidateComparison({
           )}
 
         <div className="comparison-selection-actions">
-          <span>
-            {selectedCandidateIds.length < 2
-              ? 'Select at least two candidates'
-              : `${selectedCandidateIds.length} candidates ready to compare`}
-          </span>
 
           <button
             type="button"
@@ -818,11 +814,17 @@ function CandidateComparison({
               </div>
 
               <div className="comparison-ai-content">
-                <p>
-                  {comparisonExplanation
-                    ? comparisonExplanation.explanation
-                    : 'No grounded comparison explanation is currently available.'}
-                </p>
+                {comparisonExplanation ? (
+                  <div className="comparison-ai-markdown">
+                    <ReactMarkdown>
+                      {comparisonExplanation.explanation}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p>
+                    No grounded comparison explanation is currently available.
+                  </p>
+                )}
 
                 <div className="comparison-ai-tradeoffs">
                   <div>

@@ -1,37 +1,46 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { login } from '../services/api'
+import { register } from '../services/api'
 
-interface LoginPageProps {
-  onLoginSuccess: () => void
+interface RegisterPageProps {
+  onRegisterSuccess: () => void
+  onLogin: () => void
   onBack: () => void
-  onRegister: () => void
 }
 
-function LoginPage({
-  onLoginSuccess,
+function RegisterPage({
+  onRegisterSuccess,
+  onLogin,
   onBack,
-  onRegister,
-}: LoginPageProps) {
+}: RegisterPageProps) {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] =
+    useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
 
-    setLoading(true)
     setError(null)
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
+    setLoading(true)
+
     try {
-      await login(email, password)
-      onLoginSuccess()
+      await register(name, email, password)
+      onRegisterSuccess()
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Unable to log in.',
+          : 'Unable to create your account.',
       )
     } finally {
       setLoading(false)
@@ -85,7 +94,7 @@ function LoginPage({
               marginBottom: '12px',
             }}
           >
-            Welcome back.
+            Create your account.
           </h1>
 
           <p
@@ -93,8 +102,8 @@ function LoginPage({
               marginBottom: '32px',
             }}
           >
-            Log in to continue screening candidates
-            with TalentMatch.
+            Create an account to start screening
+            candidates with TalentMatch.
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -104,6 +113,35 @@ function LoginPage({
                 gap: '20px',
               }}
             >
+              <label
+                style={{
+                  display: 'grid',
+                  gap: '8px',
+                }}
+              >
+                <span>Name</span>
+
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(event) =>
+                    setName(event.target.value)
+                  }
+                  placeholder="Your name"
+                  autoComplete="name"
+                  required
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    border: '1px solid #E6E1DA',
+                    borderRadius: '8px',
+                    font: 'inherit',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </label>
+
               <label
                 style={{
                   display: 'grid',
@@ -147,8 +185,50 @@ function LoginPage({
                   onChange={(event) =>
                     setPassword(event.target.value)
                   }
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
+                  placeholder="Create a password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  maxLength={128}
+                  required
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    border: '1px solid #E6E1DA',
+                    borderRadius: '8px',
+                    font: 'inherit',
+                    boxSizing: 'border-box',
+                  }}
+                />
+
+                <small
+                  style={{
+                    color: '#6B6B63',
+                    fontSize: '13px',
+                  }}
+                >
+                  Password must be at least 8 characters.
+                </small>
+              </label>
+
+              <label
+                style={{
+                  display: 'grid',
+                  gap: '8px',
+                }}
+              >
+                <span>Confirm password</span>
+
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) =>
+                    setConfirmPassword(event.target.value)
+                  }
+                  placeholder="Confirm your password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  maxLength={128}
                   required
                   disabled={loading}
                   style={{
@@ -182,8 +262,8 @@ function LoginPage({
                 disabled={loading}
               >
                 {loading
-                  ? 'Logging in...'
-                  : 'Log in'}
+                  ? 'Creating account...'
+                  : 'Create account'}
 
                 <span aria-hidden="true">→</span>
               </button>
@@ -198,11 +278,11 @@ function LoginPage({
               gap: '6px',
             }}
           >
-            <span>Don't have an account?</span>
+            <span>Already have an account?</span>
 
             <button
               type="button"
-              onClick={onRegister}
+              onClick={onLogin}
               style={{
                 border: 'none',
                 background: 'transparent',
@@ -213,7 +293,7 @@ function LoginPage({
                 textDecoration: 'underline',
               }}
             >
-              Click here to register
+              Log in
             </button>
           </div>
 
@@ -237,4 +317,4 @@ function LoginPage({
   )
 }
 
-export default LoginPage
+export default RegisterPage
